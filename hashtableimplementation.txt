@@ -1,0 +1,210 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX 10
+#define INF 99999 // Represents no edge
+
+typedef struct Graph {
+    int adjMatrix[MAX][MAX];
+    int vertices;
+} Graph;
+
+void initGraph(Graph* g, int vertices) {
+    g->vertices = vertices;
+    for (int i = 0; i < vertices; i++) {
+        for (int j = 0; j < vertices; j++) {
+            g->adjMatrix[i][j] = INF; // No edges initially
+        }
+    }
+}
+
+
+void addEdge(Graph* g, int src, int dest, int weight) {
+    g->adjMatrix[src][dest] = weight;
+    g->adjMatrix[dest][src] = weight; // For undirected graph
+}
+
+void displayMatrix(Graph* g) {
+    for (int i = 0; i < g->vertices; i++) {
+        for (int j = 0; j < g->vertices; j++) {
+            if (g->adjMatrix[i][j] == INF)
+                printf("0 ");
+            else
+                printf("%d ", g->adjMatrix[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+
+void bfs(Graph* g, int start) {
+    int visited[MAX] = {0};
+    int queue[MAX], front = 0, rear = 0;
+
+    queue[rear++] = start;
+    visited[start] = 1;
+
+    printf("BFS: ");
+    while (front < rear) {
+        int current = queue[front++];
+        printf("%d ", current);
+
+        for (int i = 0; i < g->vertices; i++) {
+            if (g->adjMatrix[current][i] != INF && !visited[i]) {
+                queue[rear++] = i;
+                visited[i] = 1;
+            }
+        }
+    }
+    printf("\n");
+}
+
+void dfsHelper(Graph* g, int vertex, int* visited) {
+    visited[vertex] = 1;
+    printf("%d ", vertex);
+
+    for (int i = 0; i < g->vertices; i++) {
+        if (g->adjMatrix[vertex][i] != INF && !visited[i]) {
+            dfsHelper(g, i, visited);
+        }
+    }
+}
+
+void dfs(Graph* g, int start) {
+    int visited[MAX] = {0};
+    printf("DFS: ");
+    dfsHelper(g, start, visited);
+    printf("\n");
+}
+
+int main() {
+    Graph g;
+    initGraph(&g, 5);
+
+    addEdge(&g, 0, 1, 1);
+    addEdge(&g, 0, 2, 1);
+    addEdge(&g, 1, 3, 1);
+    addEdge(&g, 1, 4, 1);
+
+    printf("Adjacency Matrix:\n");
+    displayMatrix(&g);
+
+    bfs(&g, 0);
+    dfs(&g, 0);
+
+    return 0;
+}
+
+OUTPUT :
+
+SECOND PROBLEM : HASH TABLE USING OPEN ADDRESSING 
+CODE :
+#include <stdio.h>
+#include <stdlib.h>
+
+#define TABLE_SIZE 10
+#define EMPTY -1
+#define DELETED -2
+
+typedef struct Entry {
+    int key;
+    int value;
+} Entry;
+
+typedef struct HashTable {
+    Entry table[TABLE_SIZE];
+} HashTable;
+
+// Hash function
+int hashFunction(int key) {
+    return key % TABLE_SIZE;
+}
+
+// Initialize hash table
+HashTable* createTable() {
+    HashTable* ht = (HashTable*)malloc(sizeof(HashTable));
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        ht->table[i].key = EMPTY;
+    }
+    return ht;
+}
+
+// Insert into hash table
+void insert(HashTable* ht, int key, int value) {
+    int index = hashFunction(key);
+    int originalIndex = index;
+    while (ht->table[index].key != EMPTY && ht->table[index].key != DELETED) {
+        index = (index + 1) % TABLE_SIZE;
+        if (index == originalIndex) {
+            printf("Hash table is full\n");
+            return;
+        }
+    }
+    ht->table[index].key = key;
+    ht->table[index].value = value;
+}
+
+// Search in hash table
+int search(HashTable* ht, int key) {
+    int index = hashFunction(key);
+    int originalIndex = index;
+    while (ht->table[index].key != EMPTY) {
+        if (ht->table[index].key == key) {
+            return ht->table[index].value;
+        }
+        index = (index + 1) % TABLE_SIZE;
+        if (index == originalIndex) {
+            break;
+        }
+    }
+    return -1; // Not found
+}
+
+// Delete from hash table
+void delete(HashTable* ht, int key) {
+    int index = hashFunction(key);
+    int originalIndex = index;
+    while (ht->table[index].key != EMPTY) {
+        if (ht->table[index].key == key) {
+            ht->table[index].key = DELETED;
+            return;
+        }
+        index = (index + 1) % TABLE_SIZE;
+        if (index == originalIndex) {
+            break;
+        }
+    }
+    printf("Key not found\n");
+}
+
+// Display the hash table
+void display(HashTable* ht) {
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        if (ht->table[i].key == EMPTY) {
+            printf("Index %d: EMPTY\n", i);
+        } else if (ht->table[i].key == DELETED) {
+            printf("Index %d: DELETED\n", i);
+        } else {
+            printf("Index %d: (%d, %d)\n", i, ht->table[i].key, ht->table[i].value);
+        }
+    }
+}
+
+int main() {
+    HashTable* ht = createTable();
+
+    insert(ht, 1, 10);
+    insert(ht, 2, 20);
+    insert(ht, 11, 30);
+
+    display(ht);
+
+    printf("Search key 2: %d\n", search(ht, 2));
+    printf("Search key 5: %d\n", search(ht, 5));
+
+    delete(ht, 2);
+    display(ht);
+
+    free(ht);
+    return 0;
+}
